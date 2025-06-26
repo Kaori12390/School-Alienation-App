@@ -81,7 +81,7 @@ st.markdown("""
         <h1 style="color:white">📘 Khảo Sát Về Trải Nghiệm Học Đường</h1>
         <p style="color:white;font-size:1.1rem">Chào em,<br>
         Anh/chị đang thực hiện một khảo sát để tìm hiểu trải nghiệm học đường của học sinh THPT. Những chia sẻ chân thật của em sẽ giúp bọn anh/chị hiểu hơn về cảm nhận và suy nghĩ của học sinh như em trong quá trình học tập tại trường.<br>
-        Không có câu trả lời đúng hay sai đâu, nên em hãy trả lời theo đúng cảm nhận của mình nhé. Cảm ơn em rất nhiều 💚</p>
+        Không có câu trả lời đúng hay sai đâu, nên em hãy trả lời theo đúng cảm nhận của mình nhé. Cảm ơn em rất nhiều!</p>
     </div>
 """, unsafe_allow_html=True)
 
