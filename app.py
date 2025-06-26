@@ -2,107 +2,125 @@ import streamlit as st
 import pandas as pd
 import joblib
 
-# ===== Load model and scaler =====
+# ===== Load dữ liệu và mô hình =====
 model = joblib.load("logistic_model_tuned.pkl")
 scaler = joblib.load("scaler.pkl")
 input_features = joblib.load("input_features.pkl")
 
-# ===== Page config =====
-st.set_page_config(page_title="Dự đoán xa lánh học đường", layout="wide")
+# ===== Danh sách các câu hỏi khảo sát theo thứ tự gốc =====
+questions = [
+    "1. Năm sinh của bạn?",
+    "2. Bạn đang học lớp mấy?",
+    "3. Giới tính của bạn là gì?",
+    "4. Trường bạn đang học tên gì?",
+    "5. Điểm trung bình học kỳ trước của bạn là?",
+    "6. Xếp loại học lực học kỳ trước của bạn là gì?",
+    "7. Mô tả đúng nhất về gia đình bạn đang sống cùng?",
+    "8. Trình độ học vấn của mẹ (hoặc mẹ kế)?",
+    "9. Nghề nghiệp của mẹ (hoặc mẹ kế)?",
+    "10. Thu nhập trung bình hằng tháng của mẹ (hoặc mẹ kế)?",
+    "11. Trình độ học vấn của bố (hoặc bố dượng)?",
+    "12. Nghề nghiệp của bố (hoặc bố dượng)?",
+    "13. Thu nhập trung bình hằng tháng của bố (hoặc bố dượng)?",
+]
 
-# ===== Header and Introduction =====
-st.markdown("""
-    <div style="background-color:#125f50;padding:2rem;border-radius:10px">
-        <h1 style="color:white;font-size:2.8rem">📚 Khảo Sát Về Trải Nghiệm Học Đường</h1>
-        <p style="color:white;font-size:1.2rem">Chào em,</p>
-        <p style="color:white;font-size:1.2rem">Anh chị đang thực hiện một nghiên cứu về trải nghiệm học đường của học sinh THPT. Mong em dành chút thời gian trả lời bảng khảo sát dưới đây. Những câu trả lời của em rất quan trọng và sẽ giúp anh chị hiểu hơn về những khó khăn trong môi trường học đường mà em đang gặp phải.</p>
-        <p style="color:white;font-size:1.2rem">Em cứ thoải mái chia sẻ mọi suy nghĩ thật lòng nhé!</p>
-        <p style="color:white;font-size:1.2rem">Cảm ơn em rất nhiều. Chúc em một ngày vui vẻ!</p>
-    </div>
-""", unsafe_allow_html=True)
-
-# ===== Demographic Info Section =====
-st.markdown("""
-    <h2 style='font-size:1.5rem'>🎓 Thông tin khái quát:</h2>
-""", unsafe_allow_html=True)
-
-col1, col2 = st.columns(2)
-with col1:
-    name = st.text_input("1. Họ và tên")
-    gender = st.radio("2. Giới tính", ["Nam", "Nữ", "Khác"])
-    grade = st.selectbox("3. Bạn đang học lớp mấy?", ["Lớp 10", "Lớp 11", "Lớp 12"])
-with col2:
-    birth_year = st.text_input("4. Năm sinh của bạn")
-    school = st.text_input("5. Trường bạn đang học")
-    gpa = st.selectbox("6. Điểm trung bình học kỳ trước", ["Dưới 3.5", "3.5 - 5.0", "5.0 - 6.5", "6.5 - 8.0", "> 8.0"])
-
-# ===== Survey Questions by Topic with numbering and model prediction =====
-st.markdown("""
-    <h2 style='font-size:1.5rem;margin-top:2rem'>📘 Khảo sát cảm nhận</h2>
-    <p>Vui lòng trả lời theo thang điểm từ 1 (Rất không đồng ý) đến 5 (Rất đồng ý).</p>
-""", unsafe_allow_html=True)
-
-question_blocks = {
-    "14. Bố mẹ (tích cực)": [
-        ("q141", "14.1. Mình cảm thấy nếu mình học chăm chỉ thì ba mẹ sẽ quý trọng mình hơn"),
-        ("q142", "14.2. Mình cảm thấy nếu mình làm bài kiểm tra tốt thì ba mẹ sẽ chấp nhận mình hơn"),
-        ("q143", "14.3. Mình cảm thấy nếu mình học giỏi thì ba mẹ sẽ quan tâm đến mình hơn"),
-        ("q144", "14.4. Mình cảm thấy nếu mình học tốt thì ba mẹ sẽ yêu thương mình hơn"),
-        ("q145", "14.5. Mình cảm thấy nếu mình đạt kết quả học tập tốt thì ba mẹ sẽ dịu dàng và ấm áp với mình hơn")
-    ],
-    "15. Bố mẹ (tiêu cực)": [
-        ("q151", "15.1. Nếu mình không học chăm chỉ thì ba mẹ sẽ quý trọng mình ít hơn"),
-        ("q152", "15.2. Nếu mình làm bài kiểm tra không tốt thì ba mẹ sẽ ít chấp nhận mình"),
-        ("q153", "15.3. Nếu mình học không tốt thì ba mẹ sẽ ít quan tâm đến mình"),
-        ("q154", "15.4. Nếu mình không học tốt thì ba mẹ sẽ ít yêu thương mình"),
-        ("q155", "15.5. Nếu mình học không tốt thì ba mẹ sẽ bớt dịu dàng và ấm áp với mình")
-    ],
-    "16. Thầy cô (tích cực)": [
-        ("q161", "16.1. Nếu mình học chăm chỉ thì thầy cô sẽ quý trọng mình hơn"),
-        ("q162", "16.2. Nếu mình làm bài kiểm tra tốt thì thầy cô sẽ chấp nhận mình hơn"),
-        ("q163", "16.3. Nếu mình học giỏi thì thầy cô sẽ quan tâm đến mình hơn"),
-        ("q164", "16.4. Nếu mình học tốt thì thầy cô sẽ thích mình hơn"),
-        ("q165", "16.5. Nếu mình học giỏi thì thầy cô sẽ thân thiện với mình hơn")
-    ],
-    "17. Thầy cô (tiêu cực)": [
-        ("q171", "17.1. Nếu mình không học chăm chỉ thì thầy cô sẽ ít quý trọng mình"),
-        ("q172", "17.2. Nếu mình làm bài kiểm tra không tốt thì thầy cô sẽ ít chấp nhận mình"),
-        ("q173", "17.3. Nếu mình học không tốt thì thầy cô sẽ ít quan tâm đến mình"),
-        ("q174", "17.4. Nếu mình học không tốt thì thầy cô sẽ ít thích mình"),
-        ("q175", "17.5. Nếu mình học không tốt thì thầy cô sẽ bớt thân thiện với mình")
-    ]
+# ===== Câu hỏi thang Likert 1-5 cần dùng mô hình dự đoán =====
+likert_questions = {
+    "al_learn_enjoy": "19.1. Mình mong đợi được học ở trường",
+    "al_learn_like": "19.2. Mình thích những gì được học ở trường",
+    "al_learn_boring": "19.3. Những gì học ở trường rất nhàm chán",
+    "al_learn_excite": "19.4. Việc học ở trường rất thú vị",
+    "al_learn_interest": "19.5. Mình không thấy hứng thú với việc học ở trường",
+    "al_learn_useful": "19.6. Những điều học ở trường không hữu ích trong cuộc sống",
+    "al_learn_useless": "19.7. Mình thấy những thứ phải học ở trường thật vô dụng",
+    "al_learn_waste": "19.8. Học ở trường là lãng phí thời gian",
+    "al_teacher_angry": "20.1. Thầy cô làm mình bực bội",
+    "al_teacher_accept": "20.2. Mình cảm thấy được thầy cô chấp nhận",
+    "al_teacher_uncomfort": "20.3. Mình không thấy thoải mái khi thầy cô ở gần",
+    "al_teacher_disrespect": "20.4. Mình không cảm thấy được thầy cô coi trọng",
+    "al_teacher_understand": "20.5. Mình nghĩ thầy cô không hiểu mình",
+    "al_teacher_care": "20.6. Mình nghĩ thầy cô không quan tâm đến mình",
+    "al_teacher_emotion": "20.7. Mình nghĩ thầy cô không quan tâm đến cảm xúc của mình",
+    "al_teacher_trust": "20.8. Mình có thể tin tưởng thầy cô",
+    "al_peer_angry": "21.1. Bạn bè làm mình bực bội",
+    "al_peer_accept": "21.2. Mình cảm thấy được bạn bè chấp nhận",
+    "al_peer_fit": "21.3. Mình cảm thấy mình không phù hợp với lớp",
+    "al_peer_part": "21.4. Mình vui khi được là một phần của lớp",
+    "al_peer_fun": "21.5. Mình thấy trường học là nơi tuyệt vời vì có nhiều bạn bè",
+    "al_peer_ignore": "21.6. Mình không quan tâm đến bạn học",
+"al_peer_trust": "21.7. Mình nghĩ mình có thể tin tưởng bạn học",
+    "al_peer_like": "21.8. Lớp học của mình rất tuyệt",
 }
 
+reverse_cols = [
+    "al_learn_boring", "al_learn_useless", "al_learn_waste",
+    "al_teacher_angry", "al_teacher_uncomfort", "al_teacher_disrespect",
+    "al_teacher_understand", "al_teacher_care", "al_teacher_emotion",
+    "al_peer_angry", "al_peer_ignore", "al_peer_fit",
+]
+
+# ===== Giao diện Streamlit =====
+st.set_page_config(page_title="Dự đoán xa lánh học đường", layout="wide")
+
+st.markdown("""
+    <style>
+    .question-block {
+        background-color: #f2f2f2;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+st.title("📚 Dự đoán Mức độ Xa lánh Học đường")
+st.markdown("Vui lòng trả lời các câu hỏi theo thang điểm 1 (_rất không đồng ý_) đến 5 (_rất đồng ý_).")
+
+# ===== Thông tin nền tảng =====
+with st.form("info_form"):
+    st.subheader("📝 Thông tin cá nhân")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.text_input("1. Năm sinh của bạn?")
+        st.selectbox("2. Bạn đang học lớp mấy?", ["Lớp 10", "Lớp 11", "Lớp 12"])
+        st.selectbox("3. Giới tính của bạn là gì?", ["Nam", "Nữ", "Không muốn tiết lộ"])
+        st.text_input("4. Trường bạn đang học tên gì?")
+        st.selectbox("5. Điểm trung bình học kỳ trước", ["Dưới 3.5", "3.5 - 5.0", "5.0 - 6.5", "6.5 - 8.0", "> 8.0"])
+        st.selectbox("6. Xếp loại học lực học kỳ trước", ["Yếu", "Kém", "Trung bình", "Khá", "Giỏi"])
+    with col2:
+        st.selectbox("7. Mô tả gia đình bạn đang sống cùng", ["Cả bố và mẹ", "Bố không sống cùng", "Mẹ không sống cùng", "Không sống cùng bố mẹ"])
+        st.selectbox("8. Trình độ học vấn của mẹ", ["Tiểu học", "THCS", "THPT", "Đại học", "Sau đại học"])
+        st.selectbox("9. Nghề nghiệp của mẹ", ["Quản lý", "Chuyên gia", "Công nhân", "Giáo viên", "Lao động khác"])
+        st.selectbox("10. Thu nhập mẹ", ["< 5tr", "5-10tr", "10-15tr", "15-20tr", "> 20tr"])
+        st.selectbox("11. Trình độ học vấn của bố", ["Tiểu học", "THCS", "THPT", "Đại học", "Sau đại học"])
+        st.selectbox("12. Nghề nghiệp của bố", ["Quản lý", "Chuyên gia", "Công nhân", "Giáo viên", "Lao động khác"])
+        st.selectbox("13. Thu nhập bố", ["< 5tr", "5-10tr", "10-15tr", "15-20tr", "> 20tr"])
+    st.form_submit_button("Lưu thông tin")
+
+# ===== Thang đo dự đoán (Likert) =====
+st.subheader("📊 Trả lời các câu hỏi khảo sát")
 user_input = {}
-for section, questions in question_blocks.items():
-    st.subheader(section)
-    for key, text in questions:
+cols = st.columns(2)
+for i, (var, question) in enumerate(likert_questions.items(), start=14):
+    col = cols[i % 2]
+    with col:
         with st.container():
-            st.markdown(f"<div style='background-color:#f2f2f2;padding:1rem;border-radius:8px;margin-bottom:1rem'><strong>{text}</strong></div>", unsafe_allow_html=True)
-            user_input[key] = st.radio("", [1, 2, 3, 4, 5], index=2, horizontal=True, key=key)
+st.markdown(f"<div class='question-block'><strong>{question}</strong>", unsafe_allow_html=True)
+            user_input[var] = st.radio("", [1, 2, 3, 4, 5], key=var, horizontal=True)
+            st.markdown("</div>", unsafe_allow_html=True)
 
-# Mapping keys for model (ensure you map exactly to input_features expected by the model)
-model_input_keys = input_features
-
-# Dummy mapping: you will need to replace below with correct mapping to match model features
-model_input = {k: user_input.get(k, 3) for k in model_input_keys}
-
-# ===== Predict Button =====
-if st.button("🔍 Dự đoán"):
-    df_input = pd.DataFrame([model_input])
-
-    # Đảo chiều nếu cần
-    reverse_cols = []  # Add if necessary
+# ===== Dự đoán mô hình =====
+if st.button("📌 Dự đoán"):
+    df_input = pd.DataFrame([user_input])
     for col in reverse_cols:
-        if col in df_input.columns:
+        if col in df_input:
             df_input[col] = df_input[col].apply(lambda x: 6 - x)
 
-    df_scaled = scaler.transform(df_input[model_input_keys])
+    df_scaled = scaler.transform(df_input[input_features])
     result = model.predict(df_scaled)[0]
-
     ket_qua = {
         1: "🟢 Mức độ THẤP",
         2: "🟡 Mức độ VỪA",
-        3: "🔴 Mức độ CAO"
+        3: "🔴 Mức độ CAO",
     }
     st.success(f"✅ Kết quả dự đoán: **{ket_qua[result]}**")
