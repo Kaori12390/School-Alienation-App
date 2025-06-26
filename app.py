@@ -120,32 +120,32 @@ for i, (var, question) in enumerate(likert_questions.items(), start=14):
             st.markdown("</div>", unsafe_allow_html=True)
 
 # ===== Dự đoán mô hình =====
-# ===== Dự đoán mô hình =====
 if st.button("Dự đoán"):
-    # Khởi tạo input đầy đủ
-    df_input = pd.DataFrame(columns=input_features)
-    
-    for feature in input_features:
-        # Lấy giá trị user nhập (nếu có), không thì gán 0
-        df_input.at[0, feature] = user_input.get(feature, 0)
+    # Tạo DataFrame với các cột đúng thứ tự, giá trị mặc định là 0
+    df_input = pd.DataFrame([[0] * len(input_features)], columns=input_features)
 
-    # Đảo chiều nếu có biến cần đảo
+    # Gán giá trị người dùng nhập (nếu có)
+    for key, val in user_input.items():
+        if key in df_input.columns:
+            df_input.at[0, key] = val
+
+    # Đảo chiều nếu biến thuộc danh sách đảo
     for col in reverse_cols:
         if col in df_input.columns:
             df_input[col] = df_input[col].apply(lambda x: 6 - x if pd.notnull(x) else x)
 
-    # Đảm bảo đúng thứ tự và đầy đủ feature
-    df_input = df_input[input_features]
+    # Tiền xử lý và dự đoán
+    try:
+        df_scaled = scaler.transform(df_input)
+        result = model.predict(df_scaled)[0]
 
-    # Chuẩn hóa và dự đoán
-    df_scaled = scaler.transform(df_input)
-    result = model.predict(df_scaled)[0]
+        ket_qua = {
+            1: "🟢 Mức độ THẤP",
+            2: "🟡 Mức độ VỪA",
+            3: "🔴 Mức độ CAO"
+        }
+        st.success(f"✅ Kết quả dự đoán: **{ket_qua[result]}**")
+    except Exception as e:
+        st.error(f"❌ Lỗi khi dự đoán: {e}")
 
-    ket_qua = {
-        1: "🟢 Mức độ THẤP",
-        2: "🟡 Mức độ VỪA",
-        3: "🔴 Mức độ CAO"
-    }
-
-    st.success(f"✅ Kết quả dự đoán: **{ket_qua[result]}**")
 
