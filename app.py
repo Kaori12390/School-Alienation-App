@@ -48,7 +48,7 @@ likert_questions = {
     "al_peer_part": "21.4. Mình vui khi được là một phần của lớp",
     "al_peer_fun": "21.5. Mình thấy trường học là nơi tuyệt vời vì có nhiều bạn bè",
     "al_peer_ignore": "21.6. Mình không quan tâm đến bạn học",
-"al_peer_trust": "21.7. Mình nghĩ mình có thể tin tưởng bạn học",
+    "al_peer_trust": "21.7. Mình nghĩ mình có thể tin tưởng bạn học",
     "al_peer_like": "21.8. Lớp học của mình rất tuyệt",
 }
 
@@ -105,7 +105,7 @@ for i, (var, question) in enumerate(likert_questions.items(), start=14):
     col = cols[i % 2]
     with col:
         with st.container():
-st.markdown(f"<div class='question-block'><strong>{question}</strong>", unsafe_allow_html=True)
+            st.markdown(f"<div class='question-block'><strong>{question}</strong>", unsafe_allow_html=True)
             user_input[var] = st.radio("", [1, 2, 3, 4, 5], key=var, horizontal=True)
             st.markdown("</div>", unsafe_allow_html=True)
 
