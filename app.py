@@ -36,10 +36,10 @@ st.markdown("""
 <div class="intro-box">
     <h2>📖 Khảo Sát Về Trải Nghiệm Học Đường</h2>
     <p>Chào em,
-    <br>Chị/một anh đang thực hiện một nghiên cứu về trải nghiệm học đường của học sinh THPT.
-    Mong em dành chút thời gian trả lời bảng khảo sát dưới đây. Những câu trả lời của em rất quan trọng và sẽ giúc chị/anh hiểu hơn về những khó khăn mà học sinh đang gặp phải.
-    <br>Không có đáp án đúng hay sai. Em hãy trả lời thật thể nhé!
-    <br>Chân thành cảm ơn em rất nhiều 🙏🏻</p>
+    <br>Anh chị đang thực hiện một nghiên cứu về trải nghiệm học đường của học sinh THPT.
+    Mong em dành chút thời gian trả lời bảng khảo sát dưới đây. Những câu trả lời của em rất quan trọng và sẽ giúp anh chị hiểu hơn về những khó khăn trong môi trường học đường mà em đang gặp phải.
+    <br>Em cứ thoải mái chia sẻ mọi suy nghĩ thật lòng nhé!
+    <br>Cảm ơn em rất nhiều. Chúc em một ngày vui vẻ!</p>
 </div>
 """, unsafe_allow_html=True)
 
