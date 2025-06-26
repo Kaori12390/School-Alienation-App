@@ -74,7 +74,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.title("📚 Dự đoán Mức độ Xa lánh Học đường")
-st.markdown("Vui lòng trả lời các câu hỏi theo thang điểm 1 (_rất không đồng ý_) đến 5 (_rất đồng ý_).")
 
 # ===== Thông tin nền tảng =====
 with st.form("info_form"):
@@ -95,10 +94,11 @@ with st.form("info_form"):
         st.selectbox("11. Trình độ học vấn của bố", ["Tiểu học", "THCS", "THPT", "Đại học", "Sau đại học"])
         st.selectbox("12. Nghề nghiệp của bố", ["Quản lý", "Chuyên gia", "Công nhân", "Giáo viên", "Lao động khác"])
         st.selectbox("13. Thu nhập bố", ["< 5tr", "5-10tr", "10-15tr", "15-20tr", "> 20tr"])
-    st.form_submit_button("Lưu thông tin")
+
 
 # ===== Thang đo dự đoán (Likert) =====
 st.subheader("📊 Trả lời các câu hỏi khảo sát")
+st.markdown("Vui lòng trả lời các câu hỏi theo thang điểm 1 (_rất không đồng ý_) đến 5 (_rất đồng ý_).")
 user_input = {}
 cols = st.columns(2)
 for i, (var, question) in enumerate(likert_questions.items(), start=14):
