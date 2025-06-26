@@ -7,7 +7,7 @@ model = joblib.load("logistic_model_tuned.pkl")
 scaler = joblib.load("scaler.pkl")
 input_features = joblib.load("input_features.pkl")
 
-# ===== Giao diện người dùng =====
+# ===== Cấu hình giao diện =====
 st.set_page_config(page_title="Dự đoán xa lánh học đường", layout="wide")
 
 # ===== CSS tuỳ chỉnh =====
@@ -32,15 +32,13 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# ===== Banner & giới thiệu =====
-st.image("image_banner.png", use_column_width=True)
-st.title("Dự Đoán Sớm Mức Độ Xa Lánh Học Đường")
+# ===== Tiêu đề & giới thiệu =====
+st.title("🎓 Dự đoán Mức độ Xa lánh Học đường")
 st.markdown("""
-### Ở Học Sinh Trung Học Việt Nam Bằng Mô Hình Học Máy Có Giám Sát  
-Vui lòng trả lời các câu hỏi dưới đây theo thang điểm 1 (**rất không đồng ý**) đến 5 (**rất đồng ý**).
+Vui lòng điền thông tin theo thang điểm 1 (**rất không đồng ý**) đến 5 (**rất đồng ý**) với mỗi câu hỏi:
 """)
 
-# ===== Câu hỏi tiếng Việt =====
+# ===== Câu hỏi tiếng Việt (rút gọn ví dụ) =====
 question_texts = {
     "alien_learn_score": "Bạn cảm thấy hứng thú với việc học ở trường",
     "alien_teacher_score": "Bạn cảm thấy được giáo viên chấp nhận",
@@ -54,30 +52,24 @@ question_texts = {
     "class_trust": "Bạn nghĩ mình có thể tin tưởng bạn bè trong lớp",
     "class_fit": "Bạn cảm thấy mình không phù hợp với lớp học",
     "learn_useful": "Những điều học ở trường hữu ích cho cuộc sống"
-    # 👉 Thêm các biến khác tại đây nếu cần
 }
 
-# ===== Thu thập phản hồi =====
+# ===== Tạo form chia làm 2 cột =====
+col1, col2 = st.columns(2)
 user_input = {}
-for feature in input_features:
-    label = question_texts.get(feature, feature)
-    user_input[feature] = st.radio(label, [1, 2, 3, 4, 5], index=2)
 
-# ===== Khi nhấn nút Dự đoán =====
+for i, feature in enumerate(input_features):
+    label = question_texts.get(feature, feature)
+    with col1 if i % 2 == 0 else col2:
+        user_input[feature] = st.radio(label, [1, 2, 3, 4, 5], index=2)
+
+# ===== Dự đoán khi người dùng nhấn nút =====
 if st.button("📊 Dự đoán"):
     df_input = pd.DataFrame([user_input])
-
-    # Đảo chiều nếu cần (nếu có reverse_cols thì thêm vào)
-    # reverse_cols = ['class_fit', ...]
-    # for col in reverse_cols:
-    #     if col in df_input.columns:
-    #         df_input[col] = df_input[col].apply(lambda x: 6 - x)
-
-    # Chuẩn hóa và dự đoán
     df_scaled = scaler.transform(df_input[input_features])
     result = model.predict(df_scaled)[0]
 
-    # Hiển thị kết quả
+    # ===== Hiển thị kết quả =====
     ket_qua = {
         1: "🟢 Mức độ THẤP",
         2: "🟡 Mức độ VỪA",
