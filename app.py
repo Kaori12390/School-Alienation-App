@@ -121,17 +121,24 @@ for i, (var, question) in enumerate(likert_questions.items(), start=14):
 
 # ===== Dự đoán mô hình =====
 if st.button("Dự đoán"):
-    df_input = pd.DataFrame([user_input])
-    for col in reverse_cols:
-        if col in df_input:
-            df_input[col] = df_input[col].apply(lambda x: 6 - x)
+    # Khởi tạo input với tất cả biến, gán 0 nếu thiếu
+    input_dict = {col: user_input.get(col, 0) for col in input_features}
+    df_input = pd.DataFrame([input_dict])
 
+    # Đảo chiều các biến nếu cần
+    for col in reverse_cols:
+        if col in df_input.columns:
+            df_input[col] = df_input[col].apply(lambda x: 6 - x if pd.notnull(x) else x)
+
+    # Chuẩn hóa và dự đoán
     df_scaled = scaler.transform(df_input[input_features])
     result = model.predict(df_scaled)[0]
+
     ket_qua = {
         1: "🟢 Mức độ THẤP",
         2: "🟡 Mức độ VỪA",
-        3: "🔴 Mức độ CAO",
+        3: "🔴 Mức độ CAO"
     }
+
     st.success(f"✅ Kết quả dự đoán: **{ket_qua[result]}**")
 
