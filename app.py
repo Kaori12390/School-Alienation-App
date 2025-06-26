@@ -120,15 +120,22 @@ for i, (var, question) in enumerate(likert_questions.items(), start=14):
             st.markdown("</div>", unsafe_allow_html=True)
 
 # ===== Dự đoán mô hình =====
+# ===== Dự đoán mô hình =====
 if st.button("Dự đoán"):
-    # Đảm bảo tạo DataFrame với đầy đủ các cột như mô hình yêu cầu
-    full_input = {feature: user_input.get(feature, 0) for feature in input_features}
-    df_input = pd.DataFrame([full_input])
+    # Khởi tạo input đầy đủ
+    df_input = pd.DataFrame(columns=input_features)
+    
+    for feature in input_features:
+        # Lấy giá trị user nhập (nếu có), không thì gán 0
+        df_input.at[0, feature] = user_input.get(feature, 0)
 
     # Đảo chiều nếu có biến cần đảo
     for col in reverse_cols:
         if col in df_input.columns:
             df_input[col] = df_input[col].apply(lambda x: 6 - x if pd.notnull(x) else x)
+
+    # Đảm bảo đúng thứ tự và đầy đủ feature
+    df_input = df_input[input_features]
 
     # Chuẩn hóa và dự đoán
     df_scaled = scaler.transform(df_input)
@@ -141,3 +148,4 @@ if st.button("Dự đoán"):
     }
 
     st.success(f"✅ Kết quả dự đoán: **{ket_qua[result]}**")
+
