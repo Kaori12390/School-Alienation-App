@@ -74,7 +74,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.title("📚 Dự đoán Mức độ Xa lánh Học đường")
-st.markdown("Vui lòng trả lời các câu hỏi theo thang điểm 1 (_rất không đồng ý_) đến 5 (_rất đồng ý_).")
 
 # ===== Thông tin nền tảng =====
 with st.form("info_form"):
@@ -99,6 +98,7 @@ with st.form("info_form"):
 
 # ===== Thang đo dự đoán (Likert) =====
 st.subheader("📊 Trả lời các câu hỏi khảo sát")
+st.markdown("Vui lòng trả lời các câu hỏi theo thang điểm 1 (_rất không đồng ý_) đến 5 (_rất đồng ý_).")
 user_input = {}
 cols = st.columns(2)
 for i, (var, question) in enumerate(likert_questions.items(), start=14):
