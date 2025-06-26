@@ -110,7 +110,7 @@ for i, (var, question) in enumerate(likert_questions.items(), start=14):
             st.markdown("</div>", unsafe_allow_html=True)
 
 # ===== Dự đoán mô hình =====
-if st.button("📌 Dự đoán"):
+if st.button("Dự đoán"):
     df_input = pd.DataFrame([user_input])
     for col in reverse_cols:
         if col in df_input:
