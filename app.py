@@ -121,16 +121,17 @@ for i, (var, question) in enumerate(likert_questions.items(), start=14):
 
 # ===== Dự đoán mô hình =====
 if st.button("Dự đoán"):
-    # Tạo input với đầy đủ các biến (có thể mặc định = 0 nếu thiếu)
-    df_input = pd.DataFrame([[user_input.get(col, 0) for col in input_features]], columns=input_features)
+    # Đảm bảo tạo DataFrame với đầy đủ các cột như mô hình yêu cầu
+    full_input = {feature: user_input.get(feature, 0) for feature in input_features}
+    df_input = pd.DataFrame([full_input])
 
-    # Đảo chiều nếu cần
+    # Đảo chiều nếu có biến cần đảo
     for col in reverse_cols:
         if col in df_input.columns:
             df_input[col] = df_input[col].apply(lambda x: 6 - x if pd.notnull(x) else x)
 
-    # Dự đoán
-    df_scaled = scaler.transform(df_input)  # Đảm bảo đúng cột và đúng thứ tự
+    # Chuẩn hóa và dự đoán
+    df_scaled = scaler.transform(df_input)
     result = model.predict(df_scaled)[0]
 
     ket_qua = {
