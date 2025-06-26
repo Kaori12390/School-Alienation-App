@@ -2,77 +2,119 @@ import streamlit as st
 import pandas as pd
 import joblib
 
-# ===== Load dữ liệu và mô hình =====
+# ===== Load mô hình & scaler & feature =====
 model = joblib.load("logistic_model_tuned.pkl")
 scaler = joblib.load("scaler.pkl")
 input_features = joblib.load("input_features.pkl")
 
-# ===== Cấu hình giao diện =====
-st.set_page_config(page_title="Dự đoán xa lánh học đường", layout="wide")
+# ===== Biến cần đảo chiều =====
+reverse_cols = [
+    'al_learn_boring', 'al_learn_useless', 'al_learn_waste',
+    'al_teach_nervous', 'al_teach_comfort', 'al_teach_respect',
+    'al_teach_under', 'al_teach_care', 'al_teach_feeling', 'al_teach_trust',
+    'al_class_nervous', 'al_class_fit', 'al_class_part',
+    'al_class_nice', 'al_class_care', 'al_class_trust'
+]
 
-# ===== CSS tuỳ chỉnh =====
+# ===== Nhóm biến theo chủ đề =====
+grouped_features = {
+    "🎓 Học tập": [
+        'al_learn_like', 'al_learn_enjoy', 'al_learn_exciting',
+        'al_learn_pleasure', 'al_learn_useful', 'al_learn_boring',
+        'al_learn_useless', 'al_learn_waste'
+    ],
+    "👩‍🏫 Giáo viên": [
+        'al_teach_nervous', 'al_teach_accept', 'al_teach_comfort',
+        'al_teach_respect', 'al_teach_under', 'al_teach_care',
+        'al_teach_feeling', 'al_teach_trust'
+    ],
+    "👫 Bạn bè": [
+        'al_class_nervous', 'al_class_accept', 'al_class_fit',
+        'al_class_part', 'al_class_nice', 'al_class_care',
+        'al_class_trust', 'al_class_cool'
+    ]
+}
+
+# ===== Tên tiếng Việt (ví dụ đầy đủ nên bạn cần thêm vào nếu có biến mới) =====
+feature_labels = {
+    'al_learn_like': "Bạn mong đợi được học ở trường",
+    'al_learn_enjoy': "Bạn thích nội dung học ở trường",
+    'al_learn_exciting': "Việc học ở trường rất thú vị",
+    'al_learn_pleasure': "Bạn cảm thấy vui khi học ở trường",
+    'al_learn_useful': "Những điều học ở trường hữu ích",
+    'al_learn_boring': "Những nội dung học ở trường rất nhàm chán",
+    'al_learn_useless': "Bạn thấy kiến thức học là vô dụng",
+    'al_learn_waste': "Học ở trường là lãng phí thời gian",
+    
+    'al_teach_nervous': "Thầy cô làm bạn cảm thấy căng thẳng",
+    'al_teach_accept': "Bạn cảm thấy được thầy cô chấp nhận",
+    'al_teach_comfort': "Bạn không thoải mái khi thầy cô ở gần",
+    'al_teach_respect': "Bạn không được thầy cô coi trọng",
+    'al_teach_under': "Bạn nghĩ thầy cô không hiểu mình",
+    'al_teach_care': "Bạn nghĩ thầy cô không quan tâm bạn",
+    'al_teach_feeling': "Thầy cô không quan tâm đến cảm xúc của bạn",
+    'al_teach_trust': "Bạn có thể tin tưởng thầy cô",
+
+    'al_class_nervous': "Bạn cảm thấy bạn bè làm bạn bực bội",
+    'al_class_accept': "Bạn cảm thấy được bạn bè chấp nhận",
+    'al_class_fit': "Bạn thấy mình không phù hợp với lớp",
+    'al_class_part': "Bạn thấy vui khi là một phần của lớp",
+    'al_class_nice': "Bạn thấy trường học tuyệt vì có bạn bè",
+    'al_class_care': "Bạn không quan tâm đến bạn học",
+    'al_class_trust': "Bạn tin tưởng bạn học",
+    'al_class_cool': "Lớp học của bạn thật tuyệt"
+}
+
+# ===== CSS tùy chỉnh =====
+st.set_page_config(page_title="Dự đoán xa lánh học đường", layout="wide")
 st.markdown("""
     <style>
-    .main {
-        background-color: #f2f2f2;
-    }
-    h1 {
-        color: white;
-        background-color: #146356;
-        padding: 1.5rem;
-        border-radius: 10px;
-        text-align: center;
-    }
     .stRadio > div {
         background-color: #ffffff;
-        padding: 0.8rem;
+        padding: 0.5rem;
         border-radius: 10px;
         margin-bottom: 1rem;
+    }
+    .stButton > button {
+        background-color: #146356;
+        color: white;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# ===== Tiêu đề & giới thiệu =====
-st.title("🎓 Dự đoán Mức độ Xa lánh Học đường")
-st.markdown("""
-Vui lòng điền thông tin theo thang điểm 1 (**rất không đồng ý**) đến 5 (**rất đồng ý**) với mỗi câu hỏi:
-""")
+# ===== Tiêu đề =====
+st.title("📚 Dự đoán Mức độ Xa lánh Học đường")
+st.markdown("Vui lòng trả lời các câu hỏi theo thang điểm 1 (**rất không đồng ý**) đến 5 (**rất đồng ý**).")
 
-# ===== Câu hỏi tiếng Việt (rút gọn ví dụ) =====
-question_texts = {
-    "alien_learn_score": "Bạn cảm thấy hứng thú với việc học ở trường",
-    "alien_teacher_score": "Bạn cảm thấy được giáo viên chấp nhận",
-    "alien_peer_score": "Bạn cảm thấy được bạn bè chấp nhận",
-    "achv_value": "Bạn cảm thấy mình có giá trị hơn khi học tốt",
-    "achv_bad_feel": "Bạn cảm thấy tệ hơn nếu kết quả học tập kém",
-    "achv_worth": "Bạn cảm thấy tự ti nếu điểm thấp",
-    "teach_respect": "Bạn cảm thấy được thầy cô coi trọng",
-    "teach_care": "Bạn cảm thấy thầy cô quan tâm đến mình",
-    "class_part": "Bạn cảm thấy hạnh phúc khi là một phần của lớp học",
-    "class_trust": "Bạn nghĩ mình có thể tin tưởng bạn bè trong lớp",
-    "class_fit": "Bạn cảm thấy mình không phù hợp với lớp học",
-    "learn_useful": "Những điều học ở trường hữu ích cho cuộc sống"
-}
-
-# ===== Tạo form chia làm 2 cột =====
-col1, col2 = st.columns(2)
+# ===== Giao diện theo nhóm =====
 user_input = {}
-
-for i, feature in enumerate(input_features):
-    label = question_texts.get(feature, feature)
-    with col1 if i % 2 == 0 else col2:
-        user_input[feature] = st.radio(label, [1, 2, 3, 4, 5], index=2)
+for group_name, features in grouped_features.items():
+    st.header(group_name)
+    col1, col2 = st.columns(2)
+    for i, feat in enumerate(features):
+        label = feature_labels.get(feat, feat)
+        with col1 if i % 2 == 0 else col2:
+            user_input[feat] = st.radio(label, [1, 2, 3, 4, 5], index=2)
 
 # ===== Dự đoán khi người dùng nhấn nút =====
 if st.button("📊 Dự đoán"):
     df_input = pd.DataFrame([user_input])
+
+    # Đảo chiều Likert cho các biến cần thiết
+    for col in reverse_cols:
+        if col in df_input.columns:
+            df_input[col] = df_input[col].apply(lambda x: 6 - x)
+
+    # Chuẩn hoá
     df_scaled = scaler.transform(df_input[input_features])
+
+    # Dự đoán
     result = model.predict(df_scaled)[0]
 
-    # ===== Hiển thị kết quả =====
+    # Kết quả
     ket_qua = {
-        1: "🟢 Mức độ THẤP",
-        2: "🟡 Mức độ VỪA",
-        3: "🔴 Mức độ CAO"
+        1: "🟢 Xa lánh học đường THẤP",
+        2: "🟡 Xa lánh học đường VỪA",
+        3: "🔴 Xa lánh học đường CAO"
     }
-    st.success(f"✅ Kết quả dự đoán: **{ket_qua[result]}**")
+    st.success(f"🎯 **Kết quả dự đoán:** {ket_qua[result]}")
