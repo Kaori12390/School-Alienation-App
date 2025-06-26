@@ -2,12 +2,29 @@ import streamlit as st
 import pandas as pd
 import joblib
 
-# ===== Load mô hình & scaler & feature =====
+# Load mô hình và scaler
 model = joblib.load("logistic_model_tuned.pkl")
 scaler = joblib.load("scaler.pkl")
 input_features = joblib.load("input_features.pkl")
 
-# ===== Biến cần đảo chiều =====
+# Câu hỏi nền tảng (1-13)
+def thong_tin_nen_tang():
+    st.header("1. Thông tin chung")
+    birth = st.text_input("1. Năm sinh của bạn")
+    grade = st.selectbox("2. Bạn đang học lớp mấy", ["Lớp 10", "Lớp 11", "Lớp 12"])
+    gender = st.radio("3. Giới tính", ["Nam", "Nữ", "Không muốn tiết lộ"])
+    school = st.text_input("4. Trường bạn đang học")
+    gpa = st.selectbox("5. Điểm trung bình học kì trước", ["Dưới 3.5", "3.5 - 5.0", "5.0 - 6.5", "6.5 - 8.0", "Trên 8.0"])
+    gpa_des = st.selectbox("6. Xếp loại học lực", ["Yếu", "Kém", "Trung bình", "Khá", "Giỏi"])
+    livewith = st.selectbox("7. Mô tả về gia đình bạn sống cùng", ["Sống với bố và mẹ", "Chỉ có mẹ", "Chỉ có bố", "Không sống cùng bố mẹ"])
+    mom_edu = st.selectbox("8. Trình độ học vấn của mẹ", ["Tiểu học", "THCS", "THPT", "Đại học", "Sau đại học"])
+    mom_occ = st.text_input("9. Nghề nghiệp của mẹ")
+    mom_inc = st.selectbox("10. Thu nhập trung bình/tháng của mẹ", ["< 5tr", "5-10tr", "10-15tr", "15-20tr", ">20tr"])
+    dad_edu = st.selectbox("11. Trình độ học vấn của bố", ["Tiểu học", "THCS", "THPT", "Đại học", "Sau đại học"])
+    dad_occ = st.text_input("12. Nghề nghiệp của bố")
+    dad_inc = st.selectbox("13. Thu nhập trung bình/tháng của bố", ["< 5tr", "5-10tr", "10-15tr", "15-20tr", ">20tr"])
+
+# Biến đảo chiều
 reverse_cols = [
     'al_learn_boring', 'al_learn_useless', 'al_learn_waste',
     'al_teach_nervous', 'al_teach_comfort', 'al_teach_respect',
@@ -16,105 +33,64 @@ reverse_cols = [
     'al_class_nice', 'al_class_care', 'al_class_trust'
 ]
 
-# ===== Nhóm biến theo chủ đề =====
-grouped_features = {
-    "🎓 Học tập": [
-        'al_learn_like', 'al_learn_enjoy', 'al_learn_exciting',
-        'al_learn_pleasure', 'al_learn_useful', 'al_learn_boring',
-        'al_learn_useless', 'al_learn_waste'
-    ],
-    "👩‍🏫 Giáo viên": [
-        'al_teach_nervous', 'al_teach_accept', 'al_teach_comfort',
-        'al_teach_respect', 'al_teach_under', 'al_teach_care',
-        'al_teach_feeling', 'al_teach_trust'
-    ],
-    "👫 Bạn bè": [
-        'al_class_nervous', 'al_class_accept', 'al_class_fit',
-        'al_class_part', 'al_class_nice', 'al_class_care',
-        'al_class_trust', 'al_class_cool'
-    ]
+# Nhóm câu hỏi và nhãn
+groups = {
+    "📖 Việc học": ['al_learn_like', 'al_learn_enjoy', 'al_learn_boring', 'al_learn_exciting', 'al_learn_useless', 'al_learn_waste'],
+    "👩‍🏫 Giáo viên": ['al_teach_nervous', 'al_teach_accept', 'al_teach_comfort', 'al_teach_respect', 'al_teach_under', 'al_teach_care', 'al_teach_feeling', 'al_teach_trust'],
+    "🤝 Bạn bè": ['al_class_nervous', 'al_class_accept', 'al_class_fit', 'al_class_part', 'al_class_nice', 'al_class_care', 'al_class_trust', 'al_class_cool'],
+    "🧠 Tự đánh giá bản thân": ['achv_value', 'achv_bad_feel', 'achv_worth']
 }
 
-# ===== Tên tiếng Việt (ví dụ đầy đủ nên bạn cần thêm vào nếu có biến mới) =====
 feature_labels = {
-    'al_learn_like': "Bạn mong đợi được học ở trường",
-    'al_learn_enjoy': "Bạn thích nội dung học ở trường",
-    'al_learn_exciting': "Việc học ở trường rất thú vị",
-    'al_learn_pleasure': "Bạn cảm thấy vui khi học ở trường",
-    'al_learn_useful': "Những điều học ở trường hữu ích",
-    'al_learn_boring': "Những nội dung học ở trường rất nhàm chán",
-    'al_learn_useless': "Bạn thấy kiến thức học là vô dụng",
-    'al_learn_waste': "Học ở trường là lãng phí thời gian",
-    
-    'al_teach_nervous': "Thầy cô làm bạn cảm thấy căng thẳng",
-    'al_teach_accept': "Bạn cảm thấy được thầy cô chấp nhận",
-    'al_teach_comfort': "Bạn không thoải mái khi thầy cô ở gần",
-    'al_teach_respect': "Bạn không được thầy cô coi trọng",
-    'al_teach_under': "Bạn nghĩ thầy cô không hiểu mình",
-    'al_teach_care': "Bạn nghĩ thầy cô không quan tâm bạn",
-    'al_teach_feeling': "Thầy cô không quan tâm đến cảm xúc của bạn",
-    'al_teach_trust': "Bạn có thể tin tưởng thầy cô",
-
-    'al_class_nervous': "Bạn cảm thấy bạn bè làm bạn bực bội",
-    'al_class_accept': "Bạn cảm thấy được bạn bè chấp nhận",
-    'al_class_fit': "Bạn thấy mình không phù hợp với lớp",
-    'al_class_part': "Bạn thấy vui khi là một phần của lớp",
-    'al_class_nice': "Bạn thấy trường học tuyệt vì có bạn bè",
-    'al_class_care': "Bạn không quan tâm đến bạn học",
-    'al_class_trust': "Bạn tin tưởng bạn học",
-    'al_class_cool': "Lớp học của bạn thật tuyệt"
+    'al_learn_like': "19.1. Mình mong đợi được học ở trường",
+    'al_learn_enjoy': "19.2. Mình thích những gì được học ở trường",
+    'al_learn_boring': "19.3. Những gì học ở trường rất nhàm chán",
+    'al_learn_exciting': "19.4. Việc học ở trường rất thú vị",
+    'al_learn_useless': "19.7. Mình thấy những thứ phải học ở trường thật vô dụng",
+    'al_learn_waste': "19.8. Học ở trường là lãng phí thời gian",
+    'achv_value': "18.4. Mình cảm thấy mình có giá trị hơn khi đạt thành tích tốt",
+    'achv_bad_feel': "18.2. Mình cảm thấy tệ về bản thân nếu học không tốt",
+    'achv_worth': "18.5. Mình cảm thấy tự ti hơn khi kết quả học tập không tốt"
 }
 
-# ===== CSS tùy chỉnh =====
-st.set_page_config(page_title="Dự đoán xa lánh học đường", layout="wide")
+# CSS xám nền
 st.markdown("""
     <style>
-    .stRadio > div {
-        background-color: #ffffff;
-        padding: 0.5rem;
-        border-radius: 10px;
-        margin-bottom: 1rem;
-    }
-    .stButton > button {
-        background-color: #146356;
-        color: white;
+    .question-block {
+        background-color: #f0f0f0;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 10px;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# ===== Tiêu đề =====
-st.title("📚 Dự đoán Mức độ Xa lánh Học đường")
-st.markdown("Vui lòng trả lời các câu hỏi theo thang điểm 1 (**rất không đồng ý**) đến 5 (**rất đồng ý**).")
+# Tiêu đề
+st.title("Khảo sát cảm nhận về việc học, giáo viên và gia đình")
+st.markdown("""
+Chúng mình là nhóm nghiên cứu thuộc EdLab Asia đang thực hiện khảo sát nhằm tìm hiểu cảm nhận của học sinh về sự quan tâm học tập từ phía gia đình và nhà trường.
+""")
 
-# ===== Giao diện theo nhóm =====
+# Thông tin chung
+thong_tin_nen_tang()
+
+# Thu thập dữ liệu cho các nhóm câu hỏi
 user_input = {}
-for group_name, features in grouped_features.items():
-    st.header(group_name)
-    col1, col2 = st.columns(2)
-    for i, feat in enumerate(features):
+for group_name, features in groups.items():
+    st.subheader(group_name)
+    for feat in features:
         label = feature_labels.get(feat, feat)
-        with col1 if i % 2 == 0 else col2:
-            user_input[feat] = st.radio(label, [1, 2, 3, 4, 5], index=2)
+        with st.container():
+            st.markdown(f'<div class="question-block">**{label}**</div>', unsafe_allow_html=True)
+            user_input[feat] = st.radio("", [1, 2, 3, 4, 5], index=2, key=feat)
 
-# ===== Dự đoán khi người dùng nhấn nút =====
-if st.button("📊 Dự đoán"):
+# Khi nhấn dự đoán
+if st.button("Dự đoán"): 
     df_input = pd.DataFrame([user_input])
-
-    # Đảo chiều Likert cho các biến cần thiết
     for col in reverse_cols:
         if col in df_input.columns:
             df_input[col] = df_input[col].apply(lambda x: 6 - x)
-
-    # Chuẩn hoá
     df_scaled = scaler.transform(df_input[input_features])
-
-    # Dự đoán
     result = model.predict(df_scaled)[0]
+    st.success(f"Kết quả: {'🟢 Thấp' if result==1 else '🟡 Trung bình' if result==2 else '🔴 Cao'}")
 
-    # Kết quả
-    ket_qua = {
-        1: "🟢 Xa lánh học đường THẤP",
-        2: "🟡 Xa lánh học đường VỪA",
-        3: "🔴 Xa lánh học đường CAO"
-    }
-    st.success(f"🎯 **Kết quả dự đoán:** {ket_qua[result]}")
