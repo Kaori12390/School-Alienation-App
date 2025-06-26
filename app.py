@@ -80,7 +80,7 @@ st.markdown("""
         <h1 style="color:white">📘 Khảo Sát Về Trải Nghiệm Học Đường</h1>
         <p style="color:white;font-size:1.1rem">Chào em,<br>
         Anh/chị đang thực hiện một khảo sát để tìm hiểu trải nghiệm học đường của học sinh THPT. Những chia sẻ chân thật của em sẽ giúp bọn anh/chị hiểu hơn về cảm nhận và suy nghĩ của học sinh như em trong quá trình học tập tại trường.<br>
-        Không có câu trả lời đúng hay sai đâu, nên em hãy trả lời theo đúng cảm nhận của mình nhé. Cảm ơn em rất nhiều 💚</p>
+        Không có câu trả lời đúng hay sai đâu, nên em hãy trả lời theo đúng cảm nhận của mình nhé. Cảm ơn em rất nhiều!</p>
     </div>
 """, unsafe_allow_html=True)
 
@@ -103,7 +103,7 @@ with st.form("info_form"):
         st.selectbox("11. Trình độ học vấn của bố", ["Tiểu học", "THCS", "THPT", "Đại học", "Sau đại học"])
         st.selectbox("12. Nghề nghiệp của bố", ["Quản lý", "Chuyên gia", "Công nhân", "Giáo viên", "Lao động khác"])
         st.selectbox("13. Thu nhập bố", ["< 5tr", "5-10tr", "10-15tr", "15-20tr", "> 20tr"])
-    st.form_submit_button("Lưu thông tin")
+   
 
 # ===== Thang đo dự đoán (Likert) =====
 st.subheader("📊 Trả lời các câu hỏi khảo sát")
